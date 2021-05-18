@@ -1,22 +1,3 @@
-/**
-* This file is part of ORB-SLAM2.
-*
-* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
 
 #ifndef KEYFRAME_H
 #define KEYFRAME_H
@@ -24,11 +5,11 @@
 #include "MapPoint.h"
 #include "Thirdparty/DBoW2/DBoW2/BowVector.h"
 #include "Thirdparty/DBoW2/DBoW2/FeatureVector.h"
-#include "ORBVocabulary.h"
+
 #include "ORBextractor.h"
 #include "Frame.h"
-#include "KeyFrameDatabase.h"
 
+#include <set>
 #include <mutex>
 
 
@@ -43,14 +24,13 @@ class KeyFrameDatabase;
 class KeyFrame
 {
 public:
-    KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
+    KeyFrame(Frame &F, Map* pMap);
 
     // Pose functions
     void SetPose(const cv::Mat &Tcw);
     cv::Mat GetPose();
     cv::Mat GetPoseInverse();
     cv::Mat GetCameraCenter();
-    cv::Mat GetStereoCenter();
     cv::Mat GetRotation();
     cv::Mat GetTranslation();
 
@@ -74,10 +54,7 @@ public:
     void ChangeParent(KeyFrame* pKF);
     std::set<KeyFrame*> GetChilds();
     KeyFrame* GetParent();
-    bool hasChild(KeyFrame* pKF);
 
-    // Loop Edges
-    void AddLoopEdge(KeyFrame* pKF);
     std::set<KeyFrame*> GetLoopEdges();
 
     // MapPoint observation functions
@@ -97,16 +74,11 @@ public:
     // Image
     bool IsInImage(const float &x, const float &y) const;
 
-    // Enable/Disable bad flag changes
-    void SetNotErase();
-    void SetErase();
+
 
     // Set/check bad flag
     void SetBadFlag();
     bool isBad();
-
-    // Compute Scene Depth (q=2 median). Used in monocular.
-    float ComputeSceneMedianDepth(const int q);
 
     static bool weightComp( int a, int b){
         return a>b;
@@ -115,7 +87,6 @@ public:
     static bool lId(KeyFrame* pKF1, KeyFrame* pKF2){
         return pKF1->mnId<pKF2->mnId;
     }
-
 
     // The following variables are accesed from only 1 thread or never change (no mutex needed).
 public:
@@ -140,21 +111,9 @@ public:
     long unsigned int mnBALocalForKF;
     long unsigned int mnBAFixedForKF;
 
-    // Variables used by the keyframe database
-    long unsigned int mnLoopQuery;
-    int mnLoopWords;
-    float mLoopScore;
-    long unsigned int mnRelocQuery;
-    int mnRelocWords;
-    float mRelocScore;
-
-    // Variables used by loop closing
-    cv::Mat mTcwGBA;
-    cv::Mat mTcwBefGBA;
-    long unsigned int mnBAGlobalForKF;
 
     // Calibration parameters
-    const float fx, fy, cx, cy, invfx, invfy, mbf, mb, mThDepth;
+    // const float fx, fy, cx, cy, invfx, invfy, mbf, mb, mThDepth;
 
     // Number of KeyPoints
     const int N;
@@ -186,7 +145,7 @@ public:
     const int mnMinY;
     const int mnMaxX;
     const int mnMaxY;
-    const cv::Mat mK;
+    // const cv::Mat mK;
 
 
     // The following variables need to be accessed trough a mutex to be thread safe.
@@ -204,7 +163,6 @@ protected:
 
     // BoW
     KeyFrameDatabase* mpKeyFrameDB;
-    ORBVocabulary* mpORBvocabulary;
 
     // Grid over the image to speed up feature matching
     std::vector< std::vector <std::vector<size_t> > > mGrid;
