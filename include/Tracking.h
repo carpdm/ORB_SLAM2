@@ -6,15 +6,13 @@
 #include<opencv2/core/core.hpp>
 #include<opencv2/features2d/features2d.hpp>
 
-#include"Viewer.h"
-#include"FrameDrawer.h"
+
 #include"Map.h"
 #include"LocalMapping.h"
 #include"Frame.h"
 
 
 #include"ORBextractor.h"
-#include "MapDrawer.h"
 #include "System.h"
 
 #include "opencv2/core/core.hpp"
@@ -37,7 +35,7 @@ class Tracking
 {  
 
 public:
-    Tracking(System* pSys, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap,
+    Tracking(System* pSys, Map* pMap,
             const std::string &strSettingPath);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
@@ -75,7 +73,6 @@ public:
     std::list<bool> mlbLost;
 
 
-protected:
 
     // Main tracking function. It is independent of the input sensor.
     void Track();
@@ -113,10 +110,6 @@ protected:
     // System
     System* mpSystem;
     
-    //Drawers
-    Viewer* mpViewer;
-    FrameDrawer* mpFrameDrawer;
-    MapDrawer* mpMapDrawer;
 
     //Map
     Map* mpMap;

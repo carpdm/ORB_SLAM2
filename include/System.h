@@ -8,12 +8,9 @@
 #include<opencv2/core/core.hpp>
 
 #include "Tracking.h"
-#include "FrameDrawer.h"
-#include "MapDrawer.h"
+
 #include "Map.h"
 #include "LocalMapping.h"
-
-#include "Viewer.h"
 
 namespace ORB_SLAM2
 {
@@ -54,6 +51,10 @@ public:
     // SaveMap(const string &filename);
     // LoadMap(const string &filename);
 
+    // Our new functions
+
+    void GetAllPoses(std::vector<std::pair<cv::Mat, double>> &result_vector);
+    double GetRelativePose();
 
 private:
 
@@ -69,16 +70,10 @@ private:
     // Local Mapper. It manages the local map and performs local bundle adjustment.
     LocalMapping* mpLocalMapper;
 
-    // The viewer draws the map and the current camera pose. It uses Pangolin.
-    Viewer* mpViewer;
-
-    FrameDrawer* mpFrameDrawer;
-    MapDrawer* mpMapDrawer;
 
     // System threads: Local Mapping, Loop Closing, Viewer.
     // The Tracking thread "lives" in the main execution thread that creates the System object.
     std::thread* mptLocalMapping;
-    std::thread* mptViewer;
 
 };
 

@@ -38,6 +38,9 @@ endif()
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
 
+
+
+
 include_directories(
 ${PROJECT_SOURCE_DIR}
 ${PROJECT_SOURCE_DIR}/include
@@ -53,15 +56,12 @@ add_executable(stereo_kitti
         src/LocalMapping.cc
         src/ORBextractor.cc
         src/ORBmatcher.cc
-        src/FrameDrawer.cc
         src/Utility.cc
         src/MapPoint.cc
         src/KeyFrame.cc
         src/Map.cc
-        src/MapDrawer.cc
         src/Optimizer.cc
         src/Frame.cc
-        src/Viewer.cc
         )
 
 target_link_libraries(stereo_kitti
@@ -72,3 +72,25 @@ target_link_libraries(stereo_kitti
         ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
         )
 
+
+add_library(ORBLIB SHARED
+        src/System.cc
+        src/Tracking.cc
+        src/LocalMapping.cc
+        src/ORBextractor.cc
+        src/ORBmatcher.cc
+        src/Utility.cc
+        src/MapPoint.cc
+        src/KeyFrame.cc
+        src/Map.cc
+        src/Optimizer.cc
+        src/Frame.cc
+        )
+
+target_link_libraries(ORBLIB
+        ${OpenCV_LIBS}
+        ${EIGEN3_LIBS}
+        ${Pangolin_LIBRARIES}
+        ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
+        ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
+        )

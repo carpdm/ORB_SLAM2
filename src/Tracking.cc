@@ -4,7 +4,7 @@
 #include<opencv2/features2d/features2d.hpp>
 
 #include"ORBmatcher.h"
-#include"FrameDrawer.h"
+
 #include"Utility.h"
 #include"Map.h"
 
@@ -16,10 +16,9 @@ using namespace std;
 namespace ORB_SLAM2
 {
 
-Tracking::Tracking(System *pSys, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Map *pMap, const string &strSettingPath):
+Tracking::Tracking(System *pSys, Map *pMap, const string &strSettingPath):
 mState(NOT_INITIALIZED),
-mpSystem(pSys), mpViewer(NULL),
-mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0)
+mpSystem(pSys), mpMap(pMap), mnLastRelocFrameId(0)
 {
     // Load camera parameters from settings file
     mpORBextractorLeft = new ORBextractor(Config::nFeatures(), Config::fScaleFactor(), Config::nLevels(), Config::fIniThFAST(), Config::fMinThFAST());
@@ -35,7 +34,7 @@ void Tracking::SetLocalMapper(LocalMapping *pLocalMapper)
 
 void Tracking::SetViewer(Viewer *pViewer)
 {
-    mpViewer = pViewer;
+
 }
 
 
@@ -79,7 +78,7 @@ void Tracking::Track()
 
     if (mState == NOT_INITIALIZED) {
         StereoInitialization();
-        mpFrameDrawer->Update(this);
+
         if (mState != OK) return;
     } else {
         // System is initialized. Track Frame.
@@ -117,7 +116,6 @@ void Tracking::Track()
             mState = LOST;
 
         // Update drawer
-        mpFrameDrawer->Update(this);
 
         // If tracking were good, check if we insert a keyframe
         if (bOK) {
@@ -129,8 +127,6 @@ void Tracking::Track()
                 mVelocity = mCurrentFrame.mTcw * LastTwc;
             } else
                 mVelocity = cv::Mat();
-
-            mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
 
             // Clean VO matches
             for (int i = 0; i < mCurrentFrame.N; i++) {
@@ -241,8 +237,6 @@ void Tracking::StereoInitialization()
         mpMap->SetReferenceMapPoints(mvpLocalMapPoints);
 
         mpMap->mvpKeyFrameOrigins.push_back(pKFini);
-
-        mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
 
         mState = OK;
     }

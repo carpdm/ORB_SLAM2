@@ -9,7 +9,7 @@ namespace ORB_SLAM2
 {
 
 System::System(const std::string &strVocFile, const std::string &strSettingsFile,
-               const bool bUseViewer): mpViewer(static_cast<Viewer*>(NULL))
+               const bool bUseViewer)
 {
     using namespace std;
 
@@ -37,25 +37,15 @@ System::System(const std::string &strVocFile, const std::string &strSettingsFile
     //Create the Map
     mpMap = new Map();
 
-    //Create Drawers. These are used by the Viewer
-    mpFrameDrawer = new FrameDrawer(mpMap);
-    mpMapDrawer = new MapDrawer(mpMap, strSettingsFile);
 
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
-    mpTracker = new Tracking(this, mpFrameDrawer, mpMapDrawer, mpMap, strSettingsFile);
+    mpTracker = new Tracking(this, mpMap, strSettingsFile);
 
     //Initialize the Local Mapping thread and launch
     mpLocalMapper = new LocalMapping(mpMap, false);
     mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run, mpLocalMapper);
 
-
-    //Initialize the Viewer thread and launch
-    if (bUseViewer) {
-        mpViewer = new Viewer(this, mpFrameDrawer, mpMapDrawer, mpTracker, strSettingsFile);
-        mptViewer = new thread(&Viewer::Run, mpViewer);
-        mpTracker->SetViewer(mpViewer);
-    }
 
     mpTracker->SetLocalMapper(mpLocalMapper);
     mpLocalMapper->SetTracker(mpTracker);
@@ -73,19 +63,14 @@ cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const
 void System::Shutdown()
 {
     mpLocalMapper->RequestFinish();
-    if (mpViewer) {
-        mpViewer->RequestFinish();
-        while (!mpViewer->isFinished())
-            usleep(5000);
-    }
+
 
     // Wait until all thread have effectively stopped
     while (!mpLocalMapper->isFinished()) {
         usleep(5000);
     }
 
-    if (mpViewer)
-        pangolin::BindToContext("ORB-SLAM2: Map Viewer");
+
 }
 
 
@@ -137,6 +122,43 @@ void System::SaveTrajectoryKITTI(const std::string &filename)
     }
     f.close();
     cout << endl << "trajectory saved!" << endl;
+}
+
+
+void System::GetAllPoses(std::vector<std::pair<cv::Mat, double>> &result_vector)
+{
+    result_vector.clear();
+    vector<KeyFrame *> vpKFs = mpMap->GetAllKeyFrames();
+
+    int pose_num = 0;
+    for(size_t i=0; i<vpKFs.size(); i++)
+    {
+        KeyFrame *pKF = vpKFs[i];
+
+        cv::Mat Tcw = pKF->GetPose();
+
+        result_vector.push_back(std::make_pair(Tcw, pKF->mTimeStamp));
+        pose_num++;
+    }
+
+    std::sort(result_vector.begin(), result_vector.end(), [](
+            const std::pair<cv::Mat, double> &x, const std::pair<cv::Mat, double> &y)
+    {
+        return y.second > x.second;
+    });
+
+    // cv::Mat first_cRw = result_vector[0].first.inv();
+
+    for (int i = 0; i < result_vector.size(); i++)
+    {
+        // result_vector[i].first = result_vector[i].first * first_cRw;
+        result_vector[i].first = result_vector[i].first;
+    }
+}
+
+double System::GetRelativePose()
+{
+    return mpTracker->mpReferenceKF->mTimeStamp;
 }
 
 

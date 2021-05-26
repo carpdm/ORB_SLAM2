@@ -5,10 +5,8 @@
 
 #include<opencv2/core/core.hpp>
 #include<opencv2/features2d/features2d.hpp>
-
 #include "Thirdparty/DBoW2/DBoW2/FeatureVector.h"
-
-#include<stdint-gcc.h>
+#include <stdint-gcc.h>
 
 using namespace std;
 
